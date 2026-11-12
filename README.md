@@ -39,3 +39,4 @@ python3 main.py
 - `utils/db.py` : exécution d'un fichier de requêtes SQL.
 - `data/v0_createDB.sql` : la table V0 fournie.
 - `data/createDB.sql`, `data/deleteDB.sql` : à compléter (tables, vues, triggers, index).
+# base_donnees
