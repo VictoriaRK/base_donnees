@@ -1,0 +1,4 @@
+.idea/
+__pycache__/
+/data/*.db*
+/data/resultats-definitifs-par-bureau-de-vote.csv
