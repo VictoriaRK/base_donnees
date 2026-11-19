@@ -61,6 +61,23 @@ CREATE TABLE ListeBV(
 -- BureauxDetails : chaque bureau (identifié comme dans votre schéma) avec ses inscrits, votants, abstentions, blancs, nuls, exprimés et sa participation (0,5 point).
 
 
+CREATE VIEW BureauxDetails AS
+SELECT inscrits, votants, (inscrits - votants) AS absentations, blancs, nuls, (votants - (blancs + nuls)) AS exprimés, ROUND((votants / inscrits) * 100, 2) AS participation
+FROM BureauVote;
+
+
+-- ParticipationDepartements (code, libelle, inscrits, votants, participation) : la participation de chaque département (0,5 point).
+
+CREATE VIEW ParticipationDepartements AS
+SELECT D.codeDepartement AS code, D.libelleDepartement AS libelle, SUM(BV.inscrits) AS inscrits, SUM(BV.votants) AS votants, ROUND((SUM(BV.votants) / SUM(BV.inscrits)) * 100, 2) AS participation
+FROM Departement AS D JOIN (
+    BureauVote AS BV JOIN Commune AS C
+    ON BV.codeCommune = C.codeCommune
+) AS BC 
+ON D.codeDepartement = BC.codeDepartement
+GROUP BY D.codeDepartement;
+
+
 
 
 -- TODO Etape 5 : créer les triggers
