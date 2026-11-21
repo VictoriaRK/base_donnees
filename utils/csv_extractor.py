@@ -39,22 +39,13 @@ def read_csv_file(data: sqlite3.Connection, file):
                 BureauVote.append((com,row['Code BV'],int(row['Inscrits']),int(row['Votants']),int(row['Blancs']),int(row['Nuls'])))
                 for i in range(1,39):
                      panneau=int(row[f'Numéro de panneau {i}'])
-                     Liste[panneau]=(row[f'Nuance liste {i}'],row[f'Libellé abrégé de liste {i}'],int(row[f'Sièges {i}']))
+                     Liste[panneau]=(row[f'Nuance liste {i}'],row[f'Libellé de liste {i}'],row[f'Libellé abrégé de liste {i}'],int(row[f'Sièges {i}']))
                      ListeBv.append((com,bv,panneau,int(row[f'Voix {i}'])))
     cursor = data.cursor()
     cursor.executemany("INSERT INTO Departement VALUES(?,?)",Departement.items())
     cursor.executemany("INSERT INTO Commune VALUES(?,?,?)" ,[(com, lib, dep) for com, (lib, dep) in Commune.items()])
-    cursor.executemany("INSERT INTO Liste VALUES (?, ?, ?, ?)",
-                    [(panneau, nuance, libelle, sieges) for panneau, (nuance, libelle, sieges) in Liste.items()])
+    cursor.executemany("INSERT INTO Liste VALUES (?,?,?,?,?)",
+                    [(panneau, nuance,libelle,libelle_ab, sieges) for panneau, (nuance, libelle,libelle_ab,sieges) in Liste.items()])
     cursor.executemany("INSERT INTO BureauVote VALUES (?, ?, ?, ?, ?, ?)", BureauVote)
     cursor.executemany("INSERT INTO ListeBv VALUES (?, ?, ?, ?)", ListeBv)
-    #print(f"{len(Departement)} Departement ")
-
     
-    #with open(file, 'r' , encoding='utf-8', newline='') as f:
-     #   for row in csv.DictReader(f,delimiter=';'):
-      #      Commune.append((row['Code commune'],row['Libellé commune'],row['Code département']))
-    #cursor = data.cursor()
-    #cursor.executemany("INSERT INTO COMMUNE VALUES(?,?,?)",Commune)
-    #print(f"{len(Commune)} commune ")
-
