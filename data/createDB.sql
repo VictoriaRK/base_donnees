@@ -89,15 +89,6 @@ FROM ExprimesDepartements ED JOIN VoixDepartements VD ON (ED.codeDepartement = V
 JOIN Liste L ON (VD.numPanneau = L.numPanneau);
 
 
--- BureauxForteParticipation : les bureaux (identifi´es comme dans votre sch´ema), avec leur participation, dont la participation d´epasse la participation nationale (le total des votants divis´e par le total des inscrits) (0,5 point).
-
-
--- ListesEnTete (codeDepartement, numListe, libelleAbrege, nbVoix) : la liste arriv´ee en tˆete dans chaque d´epartement (en cas d’´egalit´e, toutes les listes `a ´egalit´e) (0,5 point).
--- nbVoix = MAX(nbVoix)
-
--- ListesPartout (num, libelleAbrege) : les listes qui ont obtenu au moins une voix dans chaque d´epartement (1 point).
--- On somme les voix par (département, liste), on garde celles > 0, puis COUNT(DISTINCT département) par liste doit égaler le nombre de lignes de Departements. L'option b exigerait une voix dans chaque bureau, ce qui est beaucoup plus strict que dans chaque département.
-
 -- ResultatsDepartements (codeDepartement, numListe, libelleAbrege, nbVoix, pctExprimes) 
 CREATE VIEW ResultatsDepartements AS
 SELECT D.code AS codeDepartement, B.numPanneau AS numListe,
@@ -116,6 +107,20 @@ CREATE VIEW BureauxForteParticipation AS
 SELECT BD.codeCommune,BD.codeBV,BD.participation
 FROM BureauxDetails BD 
 WHERE BD.participation> (SELECT 1.0 *SUM(votants)/SUM(inscrits) FROM BureauVote);
+
+-- ListesEnTete (codeDepartement, numListe, libelleAbrege, nbVoix) : la liste arriv´ee en tˆete dans chaque d´epartement (en cas d’´egalit´e, toutes les listes `a ´egalit´e) (0,5 point).
+CREATE VIEW ListesEnTete AS
+SELECT RD.codeDepartement AS codeDepartement, RD.numListe AS numListe, RD.libelleAbrege AS libelleAbrege, RD.nbVoix AS nbVoix
+FROM ResultatsDepartements RD 
+JOIN (
+    SELECT codeDepartement, MAX(nbVoix) AS maxVoix
+    FROM ResultatsDepartements
+    GROUP BY codeDepartement
+) RP ON (RD.codeDepartement = RP.codeDepartement AND RD.nbVoix = RP.maxVoix);
+
+
+-- ListesPartout (num, libelleAbrege) : les listes qui ont obtenu au moins une voix dans chaque d´epartement (1 point).
+-- On somme les voix par (département, liste), on garde celles > 0, puis COUNT(DISTINCT département) par liste doit égaler le nombre de lignes de Departements. L'option b exigerait une voix dans chaque bureau, ce qui est beaucoup plus strict que dans chaque département.
 
 -- TODO Etape 5 : créer les triggers
 
