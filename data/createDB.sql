@@ -84,7 +84,7 @@ VoixDepartements AS (
     FROM ListeBV LBV JOIN Commune C ON (C.codeCommune = LBV.codeCommune)
     GROUP BY C.codeDepartement, LBV.numPanneau
 )
-SELECT ED.codeDepartement AS codeDepartement, VD.numPanneau AS numListe, L.libelleAbregeListe AS libelleAbrege, VD.nbVoix AS nbVoix, ROUND(100.0 *(VD.nbVoix / ED.exprimés), 2) AS pctExprimes
+SELECT ED.codeDepartement AS codeDepartement, VD.numPanneau AS numListe, L.libelleAbregeListe AS libelleAbrege, VD.nbVoix AS nbVoix, ROUND(100.0 *(VD.nbVoix / NULLIF(SUM(ED.exprimés),0)), 2) AS pctExprimes
 FROM ExprimesDepartements ED JOIN VoixDepartements VD ON (ED.codeDepartement = VD.codeDepartement)
 JOIN Liste L ON (VD.numPanneau = L.numPanneau);
 
@@ -120,8 +120,20 @@ JOIN (
 
 
 -- ListesPartout (num, libelleAbrege) : les listes qui ont obtenu au moins une voix dans chaque d´epartement (1 point).
--- On somme les voix par (département, liste), on garde celles > 0, puis COUNT(DISTINCT département) par liste doit égaler le nombre de lignes de Departements. L'option b exigerait une voix dans chaque bureau, ce qui est beaucoup plus strict que dans chaque département.
 
+CREATE VIEW ListesPartout AS
+WITH DepParListe AS (
+    SELECT numListe, libelleAbrege, COUNT(DISTINCT codeDepartement) AS countdeps
+    FROM ResultatsDepartements
+    WHERE nbVoix > 0
+    GROUP BY libelleAbrege
+),
+NumDeps AS (
+    SELECT COUNT(codeDepartement) AS allDeps
+    FROM Departement
+)
+SELECT numListe AS num, libelleAbrege
+FROM DepParListe DL JOIN NumDeps ND ON (ND.allDeps = DL.countdeps);
 -- TODO Etape 5 : créer les triggers
 
 -- summation voix <= inscrits
